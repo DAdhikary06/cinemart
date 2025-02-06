@@ -18,12 +18,16 @@ import Moviepage from "./pages/Moviepage";
 import Showtimespage from "./pages/Showtimespage";
 import SeatLayoutpage from "./pages/SeatLayoutpage";
 import Testpage from "./pages/Testpage";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { Navigate } from "react-router";
+import RefreshHandler from "./pages/RefreshHandler";
 import Login from "./pages/Login"
 import Register from "./pages/Register";
 
 
 const App = () => {
   const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleLogout = () => setUser(null);
 
@@ -64,10 +68,22 @@ const App = () => {
     );
   };
 
+
+  const OAuthWrapper = ({ children }) => (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      {children}
+    </GoogleOAuthProvider>
+  );
+
+  // const PrivateRoute = ({ element }) => {
+  //   return isAuthenticated ? element : <Navigate to="/" />
+  // }
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
+      <RefreshHandler setIsAuthenticated={setIsAuthenticated} />
         <Container
           width="100%"
           height="100%"
@@ -78,10 +94,10 @@ const App = () => {
         >
           <Container>
             <Routes>
-              <Route path="/login" element={<Login/>}/>
+              <Route path="/login" element={<OAuthWrapper><Login /></OAuthWrapper>} />
               <Route path="/register" element={<Register/>}/>
               <Route element={<Layout />}>
-                <Route path="/" element={<Homepage />} />
+                <Route path="/" element={<Homepage />}/>
                 <Route path="/movie/:movieId" element={<Moviepage />} />
                 <Route path="/movie/:movieId/showtimes" element={<Showtimespage />}/>
                 <Route path="/movie/:movieId/showtimes/:showtimeId/seatlayout" element={<SeatLayoutpage />}/>

@@ -97,31 +97,31 @@ router.post('/login', async (req, res) => {
 });
 
 // Google Registration/Login
-router.get(
-  "/auth/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-    session: false, // Disable session support
-  })
-);
+// router.get(
+//   "/auth/google",
+//   passport.authenticate("google", {
+//     scope: ["profile", "email"],
+//     session: false, // Disable session support
+//   })
+// );
 
-router.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { session: false }), // Disable session support
-  async (req, res) => {
-    try {
-      // Generate JWT token after successful Google login
-      const user = req.user;
-      const token = await user.generateAuthToken();
-      // Redirect to the frontend with the token
-      res.redirect(`${process.env.REACT_URL}/?token=${token}`);
-      // res.send({ message: 'You have successfully logged in', user, token });
-      console.log(user, token);
-    } catch (err) {
-      res.status(500).send({ error: "Authentication failed" });
-    }
-  }
-);
+// router.get(
+//   "/auth/google/callback",
+//   passport.authenticate("google", { session: false }), // Disable session support
+//   async (req, res) => {
+//     try {
+//       // Generate JWT token after successful Google login
+//       const user = req.user;
+//       const token = await user.generateAuthToken();
+//       // Redirect to the frontend with the token
+//       res.redirect(`${process.env.REACT_URL}/?token=${token}`);
+//       // res.send({ message: 'You have successfully logged in', user, token });
+//       console.log(user, token);
+//     } catch (err) {
+//       res.status(500).send({ error: "Authentication failed" });
+//     }
+//   }
+// );
 
 // router.post('/users/photo/:id', upload('users').single('file'), async (req, res, next) => {
 //   const url = `${req.protocol}://${req.get('host')}`;
@@ -195,7 +195,7 @@ router.get(
 // });
 
 // Logout user
-router.post('/users/logout', auth.simple, async (req, res) => {
+router.post('/logout', auth.simple, async (req, res) => {
   try {
     req.user.tokens = req.user.tokens.filter((token) => {
       return token.token !== req.token;

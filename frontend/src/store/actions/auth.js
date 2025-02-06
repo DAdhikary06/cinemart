@@ -17,7 +17,7 @@ export const login = (email, password) => async dispatch => {
     const response = await axios.post('/login', { email, password });
     console.log(response);
     const responseData = await response.data;
-
+    console.log(responseData);
     if (response.status === 200) {
       const { user } = responseData;
       if (user) {
@@ -44,6 +44,7 @@ export const register = ({ firstName, lastName, email, password, image }) => asy
       password,
     });
     const responseData = response.data;
+    console.log(responseData);
 
     if (response.status === 201) {
       const { user } = responseData;
@@ -57,5 +58,23 @@ export const register = ({ firstName, lastName, email, password, image }) => asy
     dispatch({ type: REGISTER_FAIL });
     // dispatch(setAlert(error.message, 'error', 5000));
     console.log('Register Failed: ', error);
+  }
+};
+
+// logout user
+
+export const logout = () => async (dispatch) => {
+  try {
+    const token = localStorage.getItem('jwtToken');
+    const response = await axios.post('/users/logout', { token });
+
+    if (response.status === 200) {
+      removeUser();
+      dispatch({ type: LOGOUT });
+      // dispatch(setAlert('Logout Success', 'success', 5000));
+    }
+  } catch (error) {
+    // dispatch(setAlert(error.message, 'error', 5000));
+    console.log('Logout Failed: ', error);
   }
 };

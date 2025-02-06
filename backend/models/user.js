@@ -43,7 +43,6 @@ const userSchema = Schema(
 
     password: {
       type: String,
-      required: true,
       trim: true,
       minlength: 7,
       validate(value) {
@@ -59,30 +58,10 @@ const userSchema = Schema(
       enum: ['guest', 'admin', 'superadmin'],
     },
 
-    googleId: {
-      type: String,
-      unique: true
-    },
 
-    // facebookId: {
-    //   type: String,
-    //   unique: true
-    // },
-
-    phone: {
-      type: String,
-      unique: true,
-      trim: true,
-      validate(value) {
-        if (!validator.isMobilePhone(value)) {
-          throw new Error('Phone is invalid');
-        }
-      },
-    },
-
-    imageurl: {
-      type: String,
-    },
+    avatar: {
+      type: String
+  },
 
     tokens: [
       {
@@ -155,3 +134,5 @@ userSchema.pre('save', async function (next) {
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
+
+

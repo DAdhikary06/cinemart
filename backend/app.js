@@ -2,8 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
-const passport = require("passport");
-require("./middlewares/passport");
+// const passport = require("passport");
+// require("./middlewares/passport");
 const cors = require("cors");
 const throttler = require('./utils/throttleMiddleware')
 
@@ -12,10 +12,11 @@ const userRouter = require('./routes/users');
 const movieRouter = require('./routes/movies');
 const showtimeRouter = require('./routes/showtimes');
 const screenRouter = require('./routes/screens');
+const authRouter = require('./routes/authRoutes');
 
 const app = express();
 app.disable('x-powered-by');
-const port = process.env.PORT || 3000
+const port = 5000
 
 mongoose.connect(process.env.MONGODB_URI)
 .then(() => {
@@ -25,9 +26,13 @@ mongoose.connect(process.env.MONGODB_URI)
     console.error('Error connecting to MongoDB:', error);
 });
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.REACT_URL,
+  methods: "GET,POST,PUT,DELETE",
+}));
+app.use(express.json());
 // Initialize Passport
-app.use(passport.initialize());
+// app.use(passport.initialize());
 
 app.use(function(req, res, next) {
   // Website you wish to allow to connect
@@ -42,15 +47,17 @@ app.use(function(req, res, next) {
     'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers,X-Access-Token,XKey,Authorization'
   );
 
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+
   // Pass to next layer of middleware
   next();
 });
 
-app.use(express.json());
+
 
 // comment this out to disable throttling
 // app.use(throttler);
-
+app.use("/auth/", authRouter);
 app.use(userRouter)
 app.use(movieRouter);
 app.use(showtimeRouter);

@@ -65,15 +65,11 @@ const WideMovieCard = ({ movie }) => {
           {movie.title}
         </Typography>
 
-        {/* <Typography variant="body2" sx={{ color: '#fff', marginTop: '8px' }}> */}
-        { movie.genre.map((genre,idx) => (
-          <Chip key={idx} label={genre} size="small" 
-          sx={{ 
-            margin: "8px",
-            
-          }}  />
-        ))}
-        {/* </Typography> */}
+        <Typography variant="body2" sx={{ color: "#fff", marginTop: "8px" }}>
+          {movie.genre.map((genre, idx) => (
+            <Chip key={idx} label={genre} size="small" sx={{ margin: "8px" }} />
+          ))}
+        </Typography>
       </Box>
     </Card>
   );

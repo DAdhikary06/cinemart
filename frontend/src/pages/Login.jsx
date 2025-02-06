@@ -1,21 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Avatar, Button, Container, Typography, Box, CssBaseline, TextField, FormControlLabel, Checkbox, Grid, Grid2 } from "@mui/material";
-import { Link } from "react-router-dom";
+import {
+  Avatar,
+  Button,
+  Container,
+  Typography,
+  Box,
+  CssBaseline,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  Grid2,
+} from "@mui/material";
+import { Link, useNavigate } from "react-router-dom";
 import { LockOutlined } from "@mui/icons-material";
 import { makeStyles } from '@mui/styles';
 import { FcGoogle as GoogleIcon } from "react-icons/fc";
-import { FaFacebook as FacebookIcon } from "react-icons/fa";
-import {useNavigate} from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from "../store/actions/auth";
-import backgroundImg from "../assets/bg.jpg"
+import { useGoogleLogin } from "@react-oauth/google";
+import axios from "../axiosConfig";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 251, 251, 0.04)', // Semi-transparent background
+    backgroundColor: 'rgba(255, 251, 251, 0.04)',
     padding: theme.spacing(3),
     borderRadius: theme.shape.borderRadius,
     backdropFilter: 'blur(4px)',
@@ -30,7 +40,6 @@ const useStyles = makeStyles((theme) => ({
   },
   background: {
     position: 'relative',
-    // backgroundImage: `url(${backgroundImg})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     height: '100vh',
@@ -41,32 +50,54 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Login = () => {
-
   const classes = useStyles();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // const { isAuthenticated } = useSelector((state) => state.authState);
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     navigate("/");
-  //   }
-  // }, [isAuthenticated, navigate]);
-
+  const { isAuthenticated } = useSelector((state) => state.authState);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+
+
+  const responseGoogle = async (authResult) => {
+    try {
+      console.log("authResult", authResult);
+      if (authResult["code"]) {
+        const result = await axios.get(`/auth/google?code=${authResult.code}`);
+        const { email, firstName, lastName, avatar } = result.data.user;
+        const token = result.data.token;
+        const obj = { email, firstName, lastName, avatar, token };
+        console.log("object",obj)
+        localStorage.setItem("user", JSON.stringify(obj));
+        navigate("/");
+      } else {
+        console.log(authResult);
+        throw new Error(authResult);
+      }
+    } catch (e) {
+      console.log("Error while Google Login...", e);
+    }
   };
 
-  const handleFacebookLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/facebook`;
-  };
+  const googleLogin = useGoogleLogin({
+    onSuccess: responseGoogle,
+    onError: responseGoogle,
+    flow: "auth-code",
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(login(email, password));
+    dispatch(login(email, password))
+      .catch(err => {
+        setError("Login failed. Please check your credentials.");
+      });
   };
 
   return (
@@ -80,7 +111,7 @@ const Login = () => {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          {/* {error && <Typography color="error">{error}</Typography>} */}
+          {error && <Typography color="error">{error}</Typography>}
           <form className={classes.form} noValidate onSubmit={handleSubmit}>
             <TextField
               variant="outlined"
@@ -122,17 +153,11 @@ const Login = () => {
               Sign In
             </Button>
 
-            {/* Google and Facebook Signin */}
-            <Typography
-              variant="body2"
-              color="textSecondary"
-              align="center"
-              sx={{ marginTop: 1 }}
-            >
+            <Typography variant="body2" color="textSecondary" align="center" sx={{ marginTop: 1 }}>
               Other sign in options
             </Typography>
             <Grid2 container spacing={2} style={{ marginTop: '16px', justifyContent: 'center' }}>
-              <Grid2 xs={6}>
+              <Grid2  xs={6}>
                 <Button
                   variant="outlined"
                   color="secondary"
@@ -148,41 +173,17 @@ const Login = () => {
                       backgroundColor: "rgba(255, 255, 255, 0.1)",
                     },
                   }}
-                  onClick={handleGoogleLogin}
+                  onClick={googleLogin}
                 >
                   <GoogleIcon style={{ fontSize: "24px" }} />
+                  <Typography style={{ padding: "5px", fontWeight: 700 }}>Continue with Google</Typography>
                 </Button>
               </Grid2>
-              {/* <Grid2 xs={6}>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#fff",
-                    borderColor: "#fff",
-                    padding: "10px",
-                    "&:hover": {
-                      borderColor: "#fff",
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    },
-                  }}
-                  onClick={handleFacebookLogin}
-                >
-                  <FacebookIcon style={{ fontSize: "24px", color: "#3b5998" }} />
-                </Button>
-              </Grid2> */}
             </Grid2>
 
             <Grid2 sx={{ marginTop: 3 }}>
-
               <Grid2 container justifyContent="center">
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                >
+                <Typography variant="body2" color="textSecondary">
                   Don't have an account?&nbsp;
                 </Typography>
                 <Link to='/register' variant="body2" style={{ textDecoration: 'none', color: 'skyblue', fontSize: '14px' }}>
@@ -197,8 +198,7 @@ const Login = () => {
             </Grid2>
           </form>
         </div>
-        <Box mt={8}>
-        </Box>
+        <Box mt={8}></Box>
       </Container>
     </div>
   );
